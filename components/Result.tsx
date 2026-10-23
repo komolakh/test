@@ -26,7 +26,8 @@ export default async function Result({ attemptId }: { attemptId: string }) {
 
 					<p>
 						Дата завершения:{' '}
-						{new Date(report.attempt.completed_at).toLocaleDateString('ru-RU')}
+						{report.attempt.completed_at &&
+							new Date(report.attempt.completed_at).toLocaleDateString('ru-RU')}
 					</p>
 				</div>
 				{report.mistakes.length > 0 && (
