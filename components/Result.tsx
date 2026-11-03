@@ -18,24 +18,29 @@ export default async function Result({ attemptId }: { attemptId: string }) {
 
 	return (
 		<main>
-			<div className="flex justify-between items-center mb-10">
+			<div className="flex justify-between items-center mb-10 max-sm:flex-col gap-5 max-sm:items-start">
 				<div>
 					<h2 className="text-2xl font-semibold tracking-tight sm:text-3xl mb-5">
 						Попытка {report.attemptNumber}
 					</h2>
 
-					<p>
-						Дата завершения:{' '}
-						{report.attempt.completed_at &&
-							new Date(report.attempt.completed_at).toLocaleDateString('ru-RU')}
+					<p className="mb-2">
+						Результат: верно {report.correctCount} из {report.total}
 					</p>
+
+					{report.attempt.completed_at && (
+						<p>
+							Дата завершения:{' '}
+							{new Date(report.attempt.completed_at).toLocaleDateString(
+								'ru-RU'
+							)}
+						</p>
+					)}
 				</div>
 				{report.mistakes.length > 0 && (
-					<Button>
-						<Link href={`/attempt/${attemptId}/tutor`}>
-							Работа над ошибками
-						</Link>
-					</Button>
+					<Link href={`/attempt/${attemptId}/tutor`}>
+						<Button>Работа над ошибками</Button>
+					</Link>
 				)}
 			</div>
 
@@ -46,7 +51,7 @@ export default async function Result({ attemptId }: { attemptId: string }) {
 						<Badge
 							key={s.subtopicId}
 							variant={'outline'}
-							className="px-5 py-2 rounded-full text-md font-bold mb-5"
+							className="rounded-full mb-5"
 						>
 							{s.title}
 						</Badge>

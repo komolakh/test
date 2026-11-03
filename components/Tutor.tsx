@@ -15,6 +15,15 @@ interface SavedMessage {
 	content: string
 }
 
+const pluralizeMistakes = (count: number) => {
+	const n = Math.abs(count) % 100
+	const last = n % 10
+	if (n > 10 && n < 20) return 'ошибок'
+	if (last === 1) return 'ошибка'
+	if (last >= 2 && last <= 4) return 'ошибки'
+	return 'ошибок'
+}
+
 interface TutorProps {
 	attemptNumber: number
 	userName: string
@@ -146,6 +155,7 @@ const TutorComponent = ({
 	const handleCall = async () => {
 		setError(null)
 		setMessages([])
+		setIsMuted(false)
 		setCallStatus('CONNECTING')
 
 		try {
@@ -167,17 +177,20 @@ const TutorComponent = ({
 	const handleDisconnect = () => {
 		vapi.stop()
 		setCallStatus('FINISHED')
+		setIsSpeaking(false)
+		setIsMuted(false)
 	}
 
 	return (
 		<main>
-			<div className="flex justify-between items-center mb-20">
+			<div className="flex justify-between items-center mb-20 max-sm:flex-col gap-5 max-sm:items-start">
 				<div>
 					<h2 className="text-2xl font-semibold tracking-tight sm:text-3xl mb-5">
 						Работа над ошибками
 					</h2>
 					<p>
-						Попытка {attemptNumber}: {mistakesCount} ошибок
+						Попытка {attemptNumber}: {mistakesCount}{' '}
+						{pluralizeMistakes(Number(mistakesCount))}
 					</p>
 				</div>
 
@@ -224,7 +237,7 @@ const TutorComponent = ({
 			</div>
 
 			<section className="relative flex flex-col gap-5 w-full h-100 grow overflow-hidden">
-				<div className="overflow-y-auto flex flex-col gap-5 scrollbar-thumb-white">
+				<div className="h-full overflow-y-auto flex flex-col gap-5 scrollbar-thumb-white">
 					{messages
 						.filter(m => m.role !== 'system')
 						.map((message, index) =>

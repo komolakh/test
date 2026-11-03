@@ -1,13 +1,15 @@
 'use client'
 
 import { createAttempt } from '@/lib/actions/attempt.actions'
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 
 export interface Attempt {
 	id: string
 	user_id?: string | null
+	attempt_number: number
 	created_at: string
 	completed_at?: string | null
 }
@@ -17,31 +19,39 @@ export interface AttemptsProps {
 }
 
 const AttemptList = ({ attempts }: AttemptsProps) => {
-	const handleCreateAttempt = async () => {
-		const attempt = await createAttempt()
+	const router = useRouter()
+	const [creating, setCreating] = useState(false)
 
-		if (attempt) {
-			redirect(`/attempt/${attempt.id}/question`)
-		} else {
-			console.log('Failed to create an attempt')
-			redirect('/')
+	const handleCreateAttempt = async () => {
+		setCreating(true)
+		try {
+			const attempt = await createAttempt()
+			router.push(`/attempt/${attempt.id}/question`)
+		} catch (error) {
+			console.error('Failed to create an attempt', error)
+			setCreating(false)
 		}
 	}
 
 	return (
 		<main>
 			<h1>Теория вероятностей и математическая статистика</h1>
-			<Button onClick={() => handleCreateAttempt()}>Новая попытка</Button>
+			<Button
+				onClick={handleCreateAttempt}
+				disabled={creating}
+			>
+				Новая попытка
+			</Button>
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-10">
-				{attempts.map((attempt: Attempt, index: number) => (
+				{attempts.map(attempt => (
 					<div
 						key={attempt.id}
 						className="rounded-xl p-6 border flex flex-col justify-between gap-5"
 					>
 						<div className="flex justify-between items-center">
 							<h3 className="text-xl font-semibold">
-								Попытка {attempts.length - index}
+								Попытка {attempt.attempt_number}
 							</h3>
 							<Badge variant={attempt.completed_at ? 'success' : 'destructive'}>
 								{attempt.completed_at ? 'Завершена' : 'Не завершена'}
@@ -55,9 +65,11 @@ const AttemptList = ({ attempts }: AttemptsProps) => {
 
 						<Button
 							onClick={() =>
-								attempt.completed_at
-									? redirect(`/attempt/${attempt.id}`)
-									: redirect(`/attempt/${attempt.id}/question`)
+								router.push(
+									attempt.completed_at
+										? `/attempt/${attempt.id}`
+										: `/attempt/${attempt.id}/question`
+								)
 							}
 							variant={'outline'}
 							className="w-full"

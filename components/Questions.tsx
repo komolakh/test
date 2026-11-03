@@ -27,6 +27,7 @@ export default function Questions({ attemptId }: QuestionsProps) {
 	const [loading, setLoading] = useState(true)
 	const [submitting, setSubmitting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [reloadKey, setReloadKey] = useState(0)
 	const resultUrl = `/attempt/${attemptId}`
 
 	useEffect(() => {
@@ -40,6 +41,8 @@ export default function Questions({ attemptId }: QuestionsProps) {
 					return
 				}
 				setCurrent(res)
+				setSelected([])
+				setError(null)
 				setLoading(false)
 			})
 			.catch(e => {
@@ -51,7 +54,13 @@ export default function Questions({ attemptId }: QuestionsProps) {
 		return () => {
 			cancelled = true
 		}
-	}, [attemptId, resultUrl, router])
+	}, [attemptId, resultUrl, router, reloadKey])
+
+	const handleRetry = () => {
+		setError(null)
+		setLoading(true)
+		setReloadKey(k => k + 1)
+	}
 
 	const handleSelectOption = (optionNumber: number) => {
 		if (!current) return
@@ -73,6 +82,7 @@ export default function Questions({ attemptId }: QuestionsProps) {
 		setSubmitting(true)
 		setError(null)
 		let navigating = false
+		let answerSaved = false
 
 		try {
 			const { finished } = await submitAnswer(
@@ -80,6 +90,7 @@ export default function Questions({ attemptId }: QuestionsProps) {
 				current.question.id,
 				selected
 			)
+			answerSaved = true
 
 			if (finished) {
 				navigating = true
@@ -98,6 +109,8 @@ export default function Questions({ attemptId }: QuestionsProps) {
 			setSelected([])
 		} catch (e) {
 			setError(getErrorMessage(e))
+
+			if (answerSaved) setCurrent(null)
 		} finally {
 			if (!navigating) setSubmitting(false)
 		}
@@ -111,10 +124,11 @@ export default function Questions({ attemptId }: QuestionsProps) {
 		return (
 			<main>
 				<div className="p-5 text-center">
-					{' '}
 					{error ?? 'Не удалось загрузить вопрос'}
 				</div>
-				<Button onClick={() => router.refresh()}>Повторить</Button>
+				<div className="flex justify-center">
+					<Button onClick={handleRetry}>Повторить</Button>
+				</div>
 			</main>
 		)
 	}
@@ -135,7 +149,7 @@ export default function Questions({ attemptId }: QuestionsProps) {
 
 			<Badge
 				variant={'outline'}
-				className="px-5 py-2 rounded-full text-md font-bold mb-5"
+				className="rounded-full mb-5"
 			>
 				{question.subtopic}
 			</Badge>
